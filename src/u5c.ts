@@ -75,8 +75,7 @@ export class U5C implements Provider {
     let utxoSearchResult =
       await this.queryClient.searchUtxosByAddress(addressBytes);
 
-    console.log(JSON.stringify(utxoSearchResult, null, 2));
-    return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
+      return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
   }
 
   async getUtxosWithUnit(
@@ -186,7 +185,7 @@ export class U5C implements Provider {
         datum = Buffer.from(result.parsedValued.datum.data).toString("hex");
       }
     }
-    const scriptRef: Script | null = null; // Add logic for scriptRef if available in the data
+    const scriptRef: Script | null = null; 
     const outRef: OutRef = { txHash, outputIndex };
     const txOutput: TxOutput = {
       address,
