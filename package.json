@@ -1,0 +1,37 @@
+{
+  "name": "lucid-evolution-provider",
+  "version": "1.0.0",
+  "description": "lucid evolution provider for UTxORPC",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "dev": "tsup --watch",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "clean": "rm -rf node_modules && rm -rf lib",
+    "prepublish": "npm run build"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@lucid-evolution/core-types": "^0.1.20",
+    "@lucid-evolution/core-utils": "^0.1.16",
+    "@lucid-evolution/plutus": "^0.1.26",
+    "@lucid-evolution/provider": "^0.1.61",
+    "@lucid-evolution/sign_data": "^0.1.23",
+    "@lucid-evolution/utils": "^0.1.46",
+    "@lucid-evolution/wallet": "^0.1.52",
+    "@utxorpc/sdk": "0.6.1",
+    "@utxorpc/spec": "0.10.1",
+    "bech32": "^2.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.10.0",
+    "eslint": "^9.10.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.9.0",
+    "prettier": "^3.3.3",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.4.0"
+  }
+}

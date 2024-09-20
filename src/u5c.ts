@@ -1,5 +1,6 @@
+import { Address } from "@anastasia-labs/cardano-multiplatform-lib-nodejs";
 import {
-  Address,
+  Address as LucidAddress,
   Assets,
   Credential,
   Datum,
@@ -17,8 +18,9 @@ import {
   Unit,
   UTxO,
 } from "@lucid-evolution/core-types";
+
 import { CardanoQueryClient, CardanoSubmitClient } from "@utxorpc/sdk";
-import * as Cardano from "@utxorpc/spec/lib/utxorpc/v1alpha/cardano/cardano_pb.js";
+import type * as spec from "@utxorpc/spec";
 
 export class U5C implements Provider {
   private queryClient: CardanoQueryClient;
@@ -56,64 +58,62 @@ export class U5C implements Provider {
     return this._rpcPParamsToCorePParams(rpcPParams);
   }
 
-  async getUtxos(addressOrCredential: Address | Credential): Promise<UTxO[]> {
+  async getUtxos(
+    addressOrCredential: LucidAddress | Credential
+  ): Promise<UTxO[]> {
     let addressBytes: Uint8Array;
 
     if (typeof addressOrCredential === "string") {
-      // TODO: turn address into bytes properly
-      addressBytes = new Uint8Array(Buffer.from(addressOrCredential, "hex"));
+      const address = Address.from_bech32(addressOrCredential);
+      addressBytes = address.to_raw_bytes();
+    } else if (addressOrCredential instanceof Credential) {
+      throw new Error("Credential to bytes conversion not implemented");
     } else {
-      // TODO: look into Credentials based on other providers
-      throw new Error(`Method not implemented.`);
+      throw new Error("Invalid address or credential type");
     }
 
     let utxoSearchResult =
       await this.queryClient.searchUtxosByAddress(addressBytes);
 
-    // TODO: Test mapping
+    console.log(JSON.stringify(utxoSearchResult, null, 2));
     return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
   }
 
   async getUtxosWithUnit(
-    addressOrCredential: Address | Credential,
+    addressOrCredential: LucidAddress | Credential,
     unit: Unit
   ): Promise<UTxO[]> {
     let addressBytes: Uint8Array;
 
     if (typeof addressOrCredential === "string") {
-      // TODO: turn address into bytes properly
-      addressBytes = new Uint8Array(Buffer.from(addressOrCredential.toString(), "hex"));
-
+      const address = Address.from_bech32(addressOrCredential);
+      addressBytes = address.to_raw_bytes();
     } else {
-      // TODO: look into Credentials based on other providers
       throw new Error(`Method not implemented.`);
     }
 
     const unitBytes = new Uint8Array(Buffer.from(unit, "hex"));
+    let utxoSearchResult = await this.queryClient.searchUtxosByAddressWithAsset(
+      addressBytes,
+      undefined,
+      unitBytes
+    );
 
-    let utxoSearchResult =
-      await this.queryClient.searchUtxosByAddressWithAsset(
-        addressBytes,
-        undefined,
-        unitBytes
-      );
-
-    // TODO: Test mapping
     return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
   }
 
   async getUtxoByUnit(unit: Unit): Promise<UTxO> {
     const unitBytes = new Uint8Array(Buffer.from(unit, "hex"));
-  
+
     const utxoSearchResult = await this.queryClient.searchUtxosByAsset(
       undefined,
       unitBytes
     );
-  
+
     if (utxoSearchResult.length === 0) {
       throw new Error("No UTxO found for the given unit.");
     }
-  
+
     return this._mapToUTxO(utxoSearchResult[0]);
   }
 
@@ -123,50 +123,71 @@ export class U5C implements Provider {
     return Buffer.from(hash).toString("hex");
   }
 
+  //TODO: implement this method
   async getUtxosByOutRef(outRefs: Array<OutRef>): Promise<UTxO[]> {
     throw new Error("Method not implemented.");
   }
 
+  //TODO: implement this method
   async getDelegation(rewardAddress: RewardAddress): Promise<Delegation> {
     throw new Error("Method not implemented.");
   }
 
+  //TODO: implement this method
   async getDatum(datumHash: DatumHash): Promise<Datum> {
     throw new Error("Method not implemented.");
   }
 
+  //TODO: implement this method
   async awaitTx(txHash: TxHash, checkInterval?: number): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
 
   private _mapToUTxO(result: any): UTxO {
-    const txHash: TxHash = result.txHash;
-    const outputIndex: number = result.outputIndex;
-    const address: Address = result.address;
+    const txHash = result.txoRef.hash
+      ? Buffer.from(result.txoRef.hash).toString("hex")
+      : "";
+    const outputIndex =
+      typeof result.txoRef.index === "number" ? result.txoRef.index : 0;
+    const address = result.parsedValued.address
+      ? Buffer.from(result.parsedValued.address).toString("hex")
+      : "";
+    const assets = Array.isArray(result.parsedValued.assets)
+      ? result.parsedValued.assets.reduce((acc: Assets, asset: any) => {
+          if (asset && asset.policyId && asset.assets) {
+            const policyId = Buffer.from(asset.policyId).toString("hex");
+            asset.assets.forEach((subAsset: any) => {
+              if (subAsset && subAsset.name && subAsset.outputCoin) {
+                const assetName = Buffer.from(subAsset.name).toString("hex");
+                const unit = `"${policyId}${assetName}"`;
+                acc[unit] = BigInt(subAsset.outputCoin);
+              }
+            });
+          }
+          return acc;
+        }, {})
+      : {};
 
-    const assets: Assets = Object.entries(result.assets).reduce(
-      (acc: Assets, [unit, amount]) => {
-        acc[unit] = amount as bigint;
-        return acc;
-      },
-      {}
-    );
-
-    const datumHash: DatumHash | null = result.datumHash ?? null;
-    const datum: Datum | null = result.datum ?? null;
-
-    const scriptRef: Script | null = result.scriptRef
-      ? {
-          type: "Native", 
-          script: result.scriptRef,
-        }
-      : null;
-
-    const outRef: OutRef = {
-      txHash,
-      outputIndex,
-    };
-
+    if (
+      typeof result.parsedValued.coin === "string" ||
+      typeof result.parsedValued.coin === "number"
+    ) {
+      assets[""] = BigInt(result.parsedValued.coin);
+    } else {
+      assets[""] = BigInt(0);
+    }
+    let datumHash: DatumHash | null = null;
+    let datum: Datum | null = null;
+    if (result.parsedValued.datum) {
+      if (result.parsedValued.datum.hash) {
+        datumHash = Buffer.from(result.parsedValued.datum.hash).toString("hex");
+      }
+      if (result.parsedValued.datum.data) {
+        datum = Buffer.from(result.parsedValued.datum.data).toString("hex");
+      }
+    }
+    const scriptRef: Script | null = null; // Add logic for scriptRef if available in the data
+    const outRef: OutRef = { txHash, outputIndex };
     const txOutput: TxOutput = {
       address,
       assets,
@@ -174,7 +195,6 @@ export class U5C implements Provider {
       datum,
       scriptRef,
     };
-
     // Combine them into UTxO
     return {
       ...outRef,
@@ -183,7 +203,7 @@ export class U5C implements Provider {
   }
 
   private _rpcPParamsToCorePParams(
-    rpcPParams: Cardano.PParams
+    rpcPParams: spec.cardano.PParams
   ): ProtocolParameters {
     return {
       minFeeA: Number(rpcPParams.minFeeCoefficient),
@@ -208,30 +228,33 @@ export class U5C implements Provider {
       minFeeRefScriptCostPerByte: 0, // TODO: find values
       // TODO: find values
       costModels: {
-        PlutusV1: rpcPParams.costModels?.plutusV1?.values.reduce(
-          (model: Record<string, number>, value: any, index: number) => {
-            model[index.toString()] = Number(value.toString());
-            return model;
-          },
-          {}
-        ) ?? {},
-      
-        PlutusV2: rpcPParams.costModels?.plutusV2?.values.reduce(
-          (model: Record<string, number>, value: any, index: number) => {
-            model[index.toString()] = Number(value.toString());
-            return model;
-          },
-          {}
-        ) ?? {},
-      
-        PlutusV3: rpcPParams.costModels?.plutusV3?.values.reduce(
-          (model: Record<string, number>, value: any, index: number) => {
-            model[index.toString()] = Number(value.toString());
-            return model;
-          },
-          {}
-        ) ?? {},
-      }
+        PlutusV1:
+          rpcPParams.costModels?.plutusV1?.values.reduce(
+            (model: Record<string, number>, value: any, index: number) => {
+              model[index.toString()] = Number(value.toString());
+              return model;
+            },
+            {}
+          ) ?? {},
+
+        PlutusV2:
+          rpcPParams.costModels?.plutusV2?.values.reduce(
+            (model: Record<string, number>, value: any, index: number) => {
+              model[index.toString()] = Number(value.toString());
+              return model;
+            },
+            {}
+          ) ?? {},
+
+        PlutusV3:
+          rpcPParams.costModels?.plutusV3?.values.reduce(
+            (model: Record<string, number>, value: any, index: number) => {
+              model[index.toString()] = Number(value.toString());
+              return model;
+            },
+            {}
+          ) ?? {},
+      },
     };
   }
 }
