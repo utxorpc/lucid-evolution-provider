@@ -18,9 +18,11 @@ import {
   Unit,
   UTxO,
 } from "@lucid-evolution/core-types";
+import { fromHex } from "@lucid-evolution/core-utils";
 
 import { CardanoQueryClient, CardanoSubmitClient } from "@utxorpc/sdk";
 import type * as spec from "@utxorpc/spec";
+import { submit } from "@utxorpc/spec";
 
 export class U5C implements Provider {
   private queryClient: CardanoQueryClient;
@@ -75,7 +77,7 @@ export class U5C implements Provider {
     let utxoSearchResult =
       await this.queryClient.searchUtxosByAddress(addressBytes);
 
-      return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
+    return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
   }
 
   async getUtxosWithUnit(
@@ -122,24 +124,54 @@ export class U5C implements Provider {
     return Buffer.from(hash).toString("hex");
   }
 
-  //TODO: implement this method
   async getUtxosByOutRef(outRefs: Array<OutRef>): Promise<UTxO[]> {
-    throw new Error("Method not implemented.");
+    const references = outRefs.map((outRef) => {
+      const txHashBytes = new Uint8Array(
+        Buffer.from(outRef.txHash.toString(), "hex")
+      );
+      return {
+        txHash: txHashBytes,
+        outputIndex: Number(outRef.outputIndex.toString()),
+      };
+    });
+
+    const utxoSearchResult =
+      await this.queryClient.readUtxosByOutputRef(references);
+
+    return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
   }
 
-  //TODO: implement this method
   async getDelegation(rewardAddress: RewardAddress): Promise<Delegation> {
     throw new Error("Method not implemented.");
   }
 
-  //TODO: implement this method
   async getDatum(datumHash: DatumHash): Promise<Datum> {
     throw new Error("Method not implemented.");
   }
 
-  //TODO: implement this method
-  async awaitTx(txHash: TxHash, checkInterval?: number): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  async awaitTx(
+    txHash: TxHash,
+    checkInterval: number = 1000
+  ): Promise<boolean> {
+    const timeout = checkInterval * 10;
+
+    const onConfirmed = (async () => {
+      const updates = this.submitClient.waitForTx(fromHex(txHash.toString()));
+
+      for await (const stage of updates) {
+        if (stage === submit.Stage.CONFIRMED) {
+          return true;
+        }
+      }
+
+      return false;
+    })();
+
+    const onTimeout: Promise<boolean> = new Promise((resolve) =>
+      setTimeout(() => resolve(false), timeout)
+    );
+
+    return Promise.race([onConfirmed, onTimeout]);
   }
 
   private _mapToUTxO(result: any): UTxO {
@@ -185,7 +217,7 @@ export class U5C implements Provider {
         datum = Buffer.from(result.parsedValued.datum.data).toString("hex");
       }
     }
-    const scriptRef: Script | null = null; 
+    const scriptRef: Script | null = null;
     const outRef: OutRef = { txHash, outputIndex };
     const txOutput: TxOutput = {
       address,
