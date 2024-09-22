@@ -18,7 +18,7 @@ import {
   Unit,
   UTxO,
 } from "@lucid-evolution/core-types";
-import { fromHex } from "@lucid-evolution/core-utils";
+import { fromHex, toHex } from "@lucid-evolution/core-utils";
 
 import { CardanoQueryClient, CardanoSubmitClient } from "@utxorpc/sdk";
 import type * as spec from "@utxorpc/spec";
@@ -93,7 +93,7 @@ export class U5C implements Provider {
       throw new Error(`Method not implemented.`);
     }
 
-    const unitBytes = new Uint8Array(Buffer.from(unit, "hex"));
+    const unitBytes = fromHex(unit);
     let utxoSearchResult = await this.queryClient.searchUtxosByAddressWithAsset(
       addressBytes,
       undefined,
@@ -104,7 +104,7 @@ export class U5C implements Provider {
   }
 
   async getUtxoByUnit(unit: Unit): Promise<UTxO> {
-    const unitBytes = new Uint8Array(Buffer.from(unit, "hex"));
+    const unitBytes = fromHex(unit);
 
     const utxoSearchResult = await this.queryClient.searchUtxosByAsset(
       undefined,
@@ -119,16 +119,14 @@ export class U5C implements Provider {
   }
 
   async submitTx(tx: Transaction): Promise<TxHash> {
-    const txBytes = Buffer.from(tx, "hex");
-    const hash = await this.submitClient.submitTx(new Uint8Array(txBytes));
-    return Buffer.from(hash).toString("hex");
+    const txBytes = fromHex(tx);
+    const hash = await this.submitClient.submitTx(txBytes);
+    return toHex(hash);
   }
 
   async getUtxosByOutRef(outRefs: Array<OutRef>): Promise<UTxO[]> {
     const references = outRefs.map((outRef) => {
-      const txHashBytes = new Uint8Array(
-        Buffer.from(outRef.txHash.toString(), "hex")
-      );
+      const txHashBytes = fromHex(outRef.txHash.toString());
       return {
         txHash: txHashBytes,
         outputIndex: Number(outRef.outputIndex.toString()),
@@ -176,20 +174,20 @@ export class U5C implements Provider {
 
   private _mapToUTxO(result: any): UTxO {
     const txHash = result.txoRef.hash
-      ? Buffer.from(result.txoRef.hash).toString("hex")
+      ? toHex(result.txoRef.hash)
       : "";
     const outputIndex =
       typeof result.txoRef.index === "number" ? result.txoRef.index : 0;
     const address = result.parsedValued.address
-      ? Buffer.from(result.parsedValued.address).toString("hex")
+      ? toHex(result.parsedValued.address)
       : "";
     const assets = Array.isArray(result.parsedValued.assets)
       ? result.parsedValued.assets.reduce((acc: Assets, asset: any) => {
           if (asset && asset.policyId && asset.assets) {
-            const policyId = Buffer.from(asset.policyId).toString("hex");
+            const policyId = toHex(asset.policyId);
             asset.assets.forEach((subAsset: any) => {
               if (subAsset && subAsset.name && subAsset.outputCoin) {
-                const assetName = Buffer.from(subAsset.name).toString("hex");
+                const assetName = toHex(subAsset.name);
                 const unit = `"${policyId}${assetName}"`;
                 acc[unit] = BigInt(subAsset.outputCoin);
               }
@@ -211,10 +209,10 @@ export class U5C implements Provider {
     let datum: Datum | null = null;
     if (result.parsedValued.datum) {
       if (result.parsedValued.datum.hash) {
-        datumHash = Buffer.from(result.parsedValued.datum.hash).toString("hex");
+        datumHash = toHex(result.parsedValued.datum.hash);
       }
       if (result.parsedValued.datum.data) {
-        datum = Buffer.from(result.parsedValued.datum.data).toString("hex");
+        datum = toHex(result.parsedValued.datum.data);
       }
     }
     const scriptRef: Script | null = null;
