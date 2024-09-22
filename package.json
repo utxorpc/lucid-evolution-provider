@@ -1,10 +1,10 @@
 {
-  "name": "lucid-evolution-provider",
-  "version": "1.0.0",
+  "name": "chow-lucid-evolution-provider",
+  "version": "0.1.0",
   "description": "lucid evolution provider for UTxORPC",
   "main": "index.ts",
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint \"src/**/*.ts*\"",
     "clean": "rm -rf node_modules && rm -rf lib",
@@ -21,8 +21,7 @@
     "@lucid-evolution/utils": "^0.1.46",
     "@lucid-evolution/wallet": "^0.1.52",
     "@utxorpc/sdk": "0.6.1",
-    "@utxorpc/spec": "0.10.1",
-    "bech32": "^2.0.0"
+    "@utxorpc/spec": "0.10.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
