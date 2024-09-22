@@ -57,6 +57,7 @@ export class U5C implements Provider {
     if (rpcPParams === undefined || rpcPParams === null) {
       throw new Error(`Error fetching protocol parameters`);
     }
+
     return this._rpcPParamsToCorePParams(rpcPParams);
   }
 
@@ -132,7 +133,7 @@ export class U5C implements Provider {
 
     const utxoSearchResult =
       await this.queryClient.readUtxosByOutputRef(references);
-
+    
     return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
   }
 
@@ -146,13 +147,13 @@ export class U5C implements Provider {
 
   async awaitTx(
     txHash: TxHash,
-    checkInterval: number = 1000
+    checkInterval: number = 100
   ): Promise<boolean> {
     const timeout = checkInterval * 10;
 
     const onConfirmed = (async () => {
       const updates = this.submitClient.waitForTx(fromHex(txHash.toString()));
-
+     
       for await (const stage of updates) {
         if (stage === submit.Stage.CONFIRMED) {
           return true;
@@ -236,8 +237,8 @@ export class U5C implements Provider {
       maxValSize: Number(rpcPParams.maxValueSize),
       keyDeposit: BigInt(rpcPParams.stakeKeyDeposit),
       poolDeposit: BigInt(rpcPParams.poolDeposit),
-      drepDeposit: BigInt(0), // TODO: find values
-      govActionDeposit: BigInt(0), // TODO: find values
+      drepDeposit: BigInt(500000000), // TODO: expose in UTxORPC node sdk, currently hardcoded
+      govActionDeposit: BigInt(100000000000), // TODO: expose in UTxORPC node sdk, currently hardcoded
       priceMem: Number(rpcPParams.prices?.memory),
       priceStep: Number(rpcPParams.prices?.steps),
       maxTxExMem: BigInt(
@@ -249,8 +250,7 @@ export class U5C implements Provider {
       coinsPerUtxoByte: BigInt(rpcPParams.coinsPerUtxoByte),
       collateralPercentage: Number(rpcPParams.collateralPercentage),
       maxCollateralInputs: Number(rpcPParams.maxCollateralInputs),
-      minFeeRefScriptCostPerByte: 0, // TODO: find values
-      // TODO: find values
+      minFeeRefScriptCostPerByte: Number(15), // TODO: expose in UTxORPC node sdk, currently hardcoded
       costModels: {
         PlutusV1:
           rpcPParams.costModels?.plutusV1?.values.reduce(
