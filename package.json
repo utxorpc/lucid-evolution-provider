@@ -20,6 +20,7 @@
     "@lucid-evolution/sign_data": "^0.1.23",
     "@lucid-evolution/utils": "^0.1.46",
     "@lucid-evolution/wallet": "^0.1.52",
+    "@lucid-evolution/lucid": "^0.3.41",
     "@utxorpc/sdk": "0.6.1",
     "@utxorpc/spec": "0.10.1"
   },
