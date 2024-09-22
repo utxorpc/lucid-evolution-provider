@@ -63,44 +63,41 @@ export class U5C implements Provider {
   async getUtxos(
     addressOrCredential: LucidAddress | Credential
   ): Promise<UTxO[]> {
-    let addressBytes: Uint8Array;
-
     if (typeof addressOrCredential === "string") {
       const address = Address.from_bech32(addressOrCredential);
-      addressBytes = address.to_raw_bytes();
+      const addressBytes = address.to_raw_bytes();
+      const utxoSearchResult =
+        await this.queryClient.searchUtxosByAddress(addressBytes);
+      return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
     } else if (addressOrCredential instanceof Credential) {
-      throw new Error("Credential to bytes conversion not implemented");
+      // TODO: Implement Credential handling
+      throw new Error("Credential handling is not yet implemented");
     } else {
       throw new Error("Invalid address or credential type");
     }
-
-    let utxoSearchResult =
-      await this.queryClient.searchUtxosByAddress(addressBytes);
-
-    return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
   }
 
   async getUtxosWithUnit(
     addressOrCredential: LucidAddress | Credential,
     unit: Unit
   ): Promise<UTxO[]> {
-    let addressBytes: Uint8Array;
-
     if (typeof addressOrCredential === "string") {
       const address = Address.from_bech32(addressOrCredential);
-      addressBytes = address.to_raw_bytes();
+      const addressBytes = address.to_raw_bytes();
+      const unitBytes = fromHex(unit);
+      const utxoSearchResult =
+        await this.queryClient.searchUtxosByAddressWithAsset(
+          addressBytes,
+          undefined,
+          unitBytes
+        );
+      return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
+    } else if (addressOrCredential instanceof Credential) {
+      // TODO: Implement Credential handling
+      throw new Error("Credential handling is not yet implemented");
     } else {
-      throw new Error(`Method not implemented.`);
+      throw new Error("Invalid address or credential type");
     }
-
-    const unitBytes = fromHex(unit);
-    let utxoSearchResult = await this.queryClient.searchUtxosByAddressWithAsset(
-      addressBytes,
-      undefined,
-      unitBytes
-    );
-
-    return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
   }
 
   async getUtxoByUnit(unit: Unit): Promise<UTxO> {
@@ -173,9 +170,7 @@ export class U5C implements Provider {
   }
 
   private _mapToUTxO(result: any): UTxO {
-    const txHash = result.txoRef.hash
-      ? toHex(result.txoRef.hash)
-      : "";
+    const txHash = result.txoRef.hash ? toHex(result.txoRef.hash) : "";
     const outputIndex =
       typeof result.txoRef.index === "number" ? result.txoRef.index : 0;
     const address = result.parsedValued.address
