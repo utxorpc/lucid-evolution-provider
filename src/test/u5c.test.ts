@@ -13,11 +13,12 @@ const snapshots = JSON.parse(fs.readFileSync("u5cSnapshot.json", "utf-8"), (key,
 
 describe("U5C Provider", () => {
   const provider = new U5C({
-    url: "https://preview.utxorpc-v0.demeter.run",
+    url: "http://localhost:50051",
     headers: {
-      "dmtr-api-key": "dmtr_utxorpc1vc0m93rynmltysttwm7ns9m3n5cklws6",
+      "api-key": "",
     },
-  });
+  })
+
 
   const sampleAddress =
     "addr_test1qzdnkrpd5pqux2ctyrwj8rmzztcft92c79lj4k97dra74vhx8qcgyj7m7ge3sv5rrz4kvzkyfz9htrmttvuj4r5jau0qwl8umu";
