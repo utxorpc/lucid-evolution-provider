@@ -1,8 +1,8 @@
 import { Address } from "@anastasia-labs/cardano-multiplatform-lib-nodejs";
 import {
+  Credential,
   Address as LucidAddress,
   Assets,
-  Credential,
   Datum,
   DatumHash,
   Delegation,
@@ -19,6 +19,7 @@ import {
   UTxO,
 } from "@lucid-evolution/core-types";
 import { fromHex, toHex } from "@lucid-evolution/core-utils";
+import { addressFromHexOrBech32 } from "@lucid-evolution/utils";
 
 import { CardanoQueryClient, CardanoSubmitClient } from "@utxorpc/sdk";
 import type * as spec from "@utxorpc/spec";
@@ -83,7 +84,8 @@ export class U5C implements Provider {
     unit: Unit
   ): Promise<UTxO[]> {
     if (typeof addressOrCredential === "string") {
-      const address = Address.from_bech32(addressOrCredential);
+      const address = addressFromHexOrBech32(addressOrCredential);
+      // const address = Address.from_bech32(addressOrCredential);
       const addressBytes = address.to_raw_bytes();
       const unitBytes = fromHex(unit);
       const utxoSearchResult =

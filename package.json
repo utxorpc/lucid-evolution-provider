@@ -1,8 +1,20 @@
 {
   "name": "chow-lucid-evolution-provider",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "lucid evolution provider for UTxORPC",
-  "main": "index.ts",
+  "main": "./lib/index.js",
+  "module": "./lib/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.js"
+    },
+    "./lib/*": "./lib/*"
+  },
+  "types": "./lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -15,14 +27,15 @@
   "dependencies": {
     "@lucid-evolution/core-types": "^0.1.20",
     "@lucid-evolution/core-utils": "^0.1.16",
+    "@lucid-evolution/lucid": "^0.3.41",
     "@lucid-evolution/plutus": "^0.1.26",
     "@lucid-evolution/provider": "^0.1.61",
     "@lucid-evolution/sign_data": "^0.1.23",
-    "@lucid-evolution/utils": "^0.1.46",
+    "@lucid-evolution/utils": "^0.1.49",
     "@lucid-evolution/wallet": "^0.1.52",
-    "@lucid-evolution/lucid": "^0.3.41",
     "@utxorpc/sdk": "0.6.1",
-    "@utxorpc/spec": "0.10.1"
+    "@utxorpc/spec": "0.10.1",
+    "chow-lucid-evolution-provider": "^0.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
