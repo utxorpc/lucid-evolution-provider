@@ -1,6 +1,6 @@
 {
-  "name": "chow-lucid-evolution-provider",
-  "version": "0.2.0",
+  "name": "@utxorpc/lucid-evolution-provider",
+  "version": "0.1.0",
   "description": "lucid evolution provider for UTxORPC",
   "main": "./lib/index.js",
   "module": "./lib/index.mjs",
@@ -34,8 +34,7 @@
     "@lucid-evolution/utils": "^0.1.49",
     "@lucid-evolution/wallet": "^0.1.52",
     "@utxorpc/sdk": "0.6.1",
-    "@utxorpc/spec": "0.10.1",
-    "chow-lucid-evolution-provider": "^0.2.0"
+    "@utxorpc/spec": "0.10.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.10.0",

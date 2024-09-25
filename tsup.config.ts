@@ -8,4 +8,13 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   outDir: "lib",
+  external: [
+    "@anastasia-labs/cardano-multiplatform-lib-nodejs",
+    "@lucid-evolution/core-types",
+    "@lucid-evolution/core-utils",
+    "@lucid-evolution/utils",
+    "@utxorpc/sdk",
+    "@utxorpc/spec"
+  ],
+  noExternal: []
 });

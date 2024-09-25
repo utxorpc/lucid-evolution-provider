@@ -84,8 +84,8 @@ export class U5C implements Provider {
     unit: Unit
   ): Promise<UTxO[]> {
     if (typeof addressOrCredential === "string") {
-      const address = addressFromHexOrBech32(addressOrCredential);
-      // const address = Address.from_bech32(addressOrCredential);
+      // const address = addressFromHexOrBech32(addressOrCredential);
+      const address = Address.from_bech32(addressOrCredential);
       const addressBytes = address.to_raw_bytes();
       const unitBytes = fromHex(unit);
       const utxoSearchResult =
@@ -232,6 +232,57 @@ export class U5C implements Provider {
   private _rpcPParamsToCorePParams(
     rpcPParams: spec.cardano.PParams
   ): ProtocolParameters {
+    console.log(rpcPParams);
+    console.log({
+      minFeeA: Number(rpcPParams.minFeeCoefficient),
+      minFeeB: Number(rpcPParams.minFeeConstant),
+      maxTxSize: Number(rpcPParams.maxTxSize),
+      maxValSize: Number(rpcPParams.maxValueSize),
+      keyDeposit: BigInt(rpcPParams.stakeKeyDeposit),
+      poolDeposit: BigInt(rpcPParams.poolDeposit),
+      drepDeposit: BigInt(500000000), // TODO: expose in UTxORPC node sdk, currently hardcoded
+      govActionDeposit: BigInt(100000000000), // TODO: expose in UTxORPC node sdk, currently hardcoded
+      priceMem: 0.0000721,
+      priceStep: 0.0577,
+      maxTxExMem: BigInt(
+        rpcPParams.maxExecutionUnitsPerTransaction?.memory || 0
+      ),
+      maxTxExSteps: BigInt(
+        rpcPParams.maxExecutionUnitsPerTransaction?.steps || 0
+      ),
+      coinsPerUtxoByte: BigInt(rpcPParams.coinsPerUtxoByte),
+      collateralPercentage: Number(rpcPParams.collateralPercentage),
+      maxCollateralInputs: Number(rpcPParams.maxCollateralInputs),
+      minFeeRefScriptCostPerByte: Number(15), // TODO: expose in UTxORPC node sdk, currently hardcoded
+      costModels: {
+        PlutusV1:
+          rpcPParams.costModels?.plutusV1?.values.reduce(
+            (model: Record<string, number>, value: any, index: number) => {
+              model[index.toString()] = Number(value.toString());
+              return model;
+            },
+            {}
+          ) ?? {},
+
+        PlutusV2:
+          rpcPParams.costModels?.plutusV2?.values.reduce(
+            (model: Record<string, number>, value: any, index: number) => {
+              model[index.toString()] = Number(value.toString());
+              return model;
+            },
+            {}
+          ) ?? {},
+
+        PlutusV3:
+          rpcPParams.costModels?.plutusV3?.values.reduce(
+            (model: Record<string, number>, value: any, index: number) => {
+              model[index.toString()] = Number(value.toString());
+              return model;
+            },
+            {}
+          ) ?? {},
+      },
+    });
     return {
       minFeeA: Number(rpcPParams.minFeeCoefficient),
       minFeeB: Number(rpcPParams.minFeeConstant),
@@ -241,8 +292,8 @@ export class U5C implements Provider {
       poolDeposit: BigInt(rpcPParams.poolDeposit),
       drepDeposit: BigInt(500000000), // TODO: expose in UTxORPC node sdk, currently hardcoded
       govActionDeposit: BigInt(100000000000), // TODO: expose in UTxORPC node sdk, currently hardcoded
-      priceMem: Number(rpcPParams.prices?.memory),
-      priceStep: Number(rpcPParams.prices?.steps),
+      priceMem: 0.0000721,
+      priceStep: 0.0577,
       maxTxExMem: BigInt(
         rpcPParams.maxExecutionUnitsPerTransaction?.memory || 0
       ),
