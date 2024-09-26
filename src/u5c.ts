@@ -178,26 +178,16 @@ export class U5C implements Provider {
     throw new Error("Method not implemented.");
   }
 
-  async awaitTx(txHash: TxHash, checkInterval: number = 100): Promise<boolean> {
-    const timeout = checkInterval * 10;
+  async awaitTx(txHash: TxHash, checkInterval: number = 1000): Promise<boolean> {
+    const updates = this.submitClient.waitForTx(fromHex(txHash));
 
-    const onConfirmed = (async () => {
-      const updates = this.submitClient.waitForTx(fromHex(txHash.toString()));
-
-      for await (const stage of updates) {
-        if (stage === submit.Stage.CONFIRMED) {
-          return true;
-        }
+    for await (const stage of updates) {
+      if (stage === submit.Stage.CONFIRMED) {
+        return true;
       }
+    }
 
-      return false;
-    })();
-
-    const onTimeout: Promise<boolean> = new Promise((resolve) =>
-      setTimeout(() => resolve(false), timeout)
-    );
-
-    return Promise.race([onConfirmed, onTimeout]);
+    return false;
   }
 
   private _mapToUTxO(result: any): UTxO {
@@ -214,7 +204,7 @@ export class U5C implements Provider {
     if (!result.parsedValued?.address) {
       throw new Error("Invalid UTxO: Missing address.");
     }
-    const addressObject = Address.from_hex(toHex(result.parsedValued.address));
+    const addressObject = Address.from_raw_bytes(result.parsedValued.address);
     const address = addressObject.to_bech32();
 
     const assets: Assets = {};
