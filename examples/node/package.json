@@ -1,0 +1,12 @@
+{
+    "scripts": {
+        "start": "tsx u5c.ts"
+    },
+    "type": "module",
+    "dependencies": {
+        "@lucid-evolution/lucid": "^0.3.42"
+    },
+    "devDependencies": {
+        "tsx": "4.19.1"
+    }
+}

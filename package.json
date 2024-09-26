@@ -1,0 +1,50 @@
+{
+  "name": "@utxorpc/lucid-evolution-provider",
+  "version": "0.1.0",
+  "description": "lucid evolution provider for UTxORPC",
+  "main": "./lib/index.js",
+  "module": "./lib/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.js"
+    },
+    "./lib/*": "./lib/*"
+  },
+  "types": "./lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "clean": "rm -rf node_modules && rm -rf lib",
+    "prepublish": "npm run build"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@lucid-evolution/core-types": "^0.1.20",
+    "@lucid-evolution/core-utils": "^0.1.16",
+    "@lucid-evolution/lucid": "^0.3.41",
+    "@lucid-evolution/plutus": "^0.1.26",
+    "@lucid-evolution/provider": "^0.1.61",
+    "@lucid-evolution/sign_data": "^0.1.23",
+    "@lucid-evolution/utils": "^0.1.49",
+    "@lucid-evolution/wallet": "^0.1.52",
+    "@utxorpc/sdk": "^0.6.2",
+    "@utxorpc/spec": "^0.10.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.10.0",
+    "eslint": "^9.10.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.9.0",
+    "prettier": "^3.3.3",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.4.0"
+  }
+}
