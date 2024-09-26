@@ -15,6 +15,7 @@
   "files": [
     "lib"
   ],
+  "type": "module",
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -33,8 +34,8 @@
     "@lucid-evolution/sign_data": "^0.1.23",
     "@lucid-evolution/utils": "^0.1.49",
     "@lucid-evolution/wallet": "^0.1.52",
-    "@utxorpc/sdk": "0.6.1",
-    "@utxorpc/spec": "0.10.1"
+    "@utxorpc/sdk": "^0.6.2",
+    "@utxorpc/spec": "^0.10.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
