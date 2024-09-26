@@ -281,7 +281,7 @@ export class U5C implements Provider {
     };
   }
 
-  // TODO: expose in UTxORPC node sdk, currently hardcoded
+  // @TODO: use the rpc response and map to core types instead of hardcoded values
   private _rpcPParamsToCorePParams(
     rpcPParams: spec.cardano.PParams
   ): ProtocolParameters {
