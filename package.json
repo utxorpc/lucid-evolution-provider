@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "description": "lucid evolution provider for UTxORPC",
   "main": "./lib/index.js",
-  "module": "./lib/index.mjs",
   "exports": {
     ".": {
       "import": "./lib/index.mjs",
@@ -15,7 +14,6 @@
   "files": [
     "lib"
   ],
-  "type": "module",
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
