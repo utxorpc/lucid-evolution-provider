@@ -1,5 +1,5 @@
 <div align="center">
-  <h1 style="font-size: 3em;">Lucid UTxO RPC Provider 🚀</h1>
+  <h1 style="font-size: 3em;">Lucid Evolution UTxO RPC Provider 🚀</h1>
   <h4>A gRPC interface for UTxO Blockchains with Lucid Evolution</h4>
 </div>
 <div align="center">
@@ -14,7 +14,7 @@
   </a>
 </div>
 
-The **Lucid UTxO RPC Provider** offers a JavaScript/TypeScript interface for interacting with UTxO-based blockchains using Lucid Evolution. By leveraging gRPC and UTxO RPC, it allows developers to seamlessly integrate Cardano blockchain interactions into their decentralized applications (dApps).
+The **Lucid Evolution UTxO RPC Provider** offers a JavaScript/TypeScript interface for interacting with UTxO-based blockchains using Lucid Evolution. By leveraging gRPC and UTxO RPC, it allows developers to seamlessly integrate Cardano blockchain interactions into their decentralized applications (dApps).
 
 ## 🌟 Features
 
