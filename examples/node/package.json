@@ -4,7 +4,7 @@
     },
     "type": "module",
     "dependencies": {
-        "@lucid-evolution/lucid": "^0.3.42"
+        "@lucid-evolution/lucid": "^0.4.3"
     },
     "devDependencies": {
         "tsx": "4.19.1"
