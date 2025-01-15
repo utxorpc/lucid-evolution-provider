@@ -162,7 +162,6 @@ export class U5C implements Provider {
       return Array.from(uniqueUtxos.values()).map((result: any) =>
         this._mapToUTxO(result)
       );
-      // throw new Error("Credential handling is not yet implemented");
     } else {
       throw new Error("Invalid address or credential type");
     }
