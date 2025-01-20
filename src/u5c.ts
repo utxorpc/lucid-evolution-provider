@@ -1,8 +1,8 @@
 import { Address } from "@anastasia-labs/cardano-multiplatform-lib-nodejs";
 import {
-  Credential as LucidCredential,
   Address as LucidAddress,
   Assets,
+  Credential as LucidCredential,
   Datum,
   DatumHash,
   Delegation,
@@ -18,6 +18,7 @@ import {
   UTxO,
 } from "@lucid-evolution/core-types";
 import { fromHex, toHex } from "@lucid-evolution/core-utils";
+import { CML } from "@lucid-evolution/lucid";
 
 import { CardanoQueryClient, CardanoSubmitClient } from "@utxorpc/sdk";
 import type * as spec from "@utxorpc/spec";
@@ -47,8 +48,9 @@ export class U5C implements Provider {
 
   evaluateTx(
     tx: Transaction,
-    additionalUTxOs?: UTxO[]
+    additionalUTxOs?: UTxO[],
   ): Promise<EvalRedeemer[]> {
+    // TODO: implement evaluateTx
     throw new Error("Method not implemented.");
   }
 
@@ -62,13 +64,14 @@ export class U5C implements Provider {
   }
 
   async getUtxos(
-    addressOrCredential: LucidAddress | LucidCredential
+    addressOrCredential: LucidAddress | LucidCredential,
   ): Promise<UTxO[]> {
     if (typeof addressOrCredential === "string") {
       const address = Address.from_bech32(addressOrCredential);
       const addressBytes = address.to_raw_bytes();
-      const utxoSearchResult =
-        await this.queryClient.searchUtxosByAddress(addressBytes);
+      const utxoSearchResult = await this.queryClient.searchUtxosByAddress(
+        addressBytes,
+      );
       return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
     } else if (
       addressOrCredential &&
@@ -78,6 +81,7 @@ export class U5C implements Provider {
     ) {
       let credentialBytes: Uint8Array;
       credentialBytes = fromHex(addressOrCredential.hash);
+
 
       const utxoSearchResultPayment =
         await this.queryClient.searchUtxosByPaymentPart(credentialBytes);
@@ -107,22 +111,58 @@ export class U5C implements Provider {
 
   async getUtxosWithUnit(
     addressOrCredential: LucidAddress | LucidCredential,
-    unit: Unit
+    unit: Unit,
   ): Promise<UTxO[]> {
+    const unitBytes = fromHex(unit);
+
     if (typeof addressOrCredential === "string") {
       const address = Address.from_bech32(addressOrCredential);
       const addressBytes = address.to_raw_bytes();
-      const unitBytes = fromHex(unit);
-      const utxoSearchResult =
-        await this.queryClient.searchUtxosByAddressWithAsset(
+      const utxoSearchResult = await this.queryClient
+        .searchUtxosByAddressWithAsset(
           addressBytes,
           undefined,
-          unitBytes
+          unitBytes,
         );
       return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
-    } else if (addressOrCredential instanceof Credential) {
-      // TODO: Implement Credential handling
-      throw new Error("Credential handling is not yet implemented");
+    } else if (
+      addressOrCredential &&
+      (addressOrCredential.type === "Key" ||
+        addressOrCredential.type === "Script") &&
+      typeof addressOrCredential.hash === "string"
+    ) {
+      let credentialBytes: Uint8Array;
+      credentialBytes = fromHex(addressOrCredential.hash);
+
+      const utxoSearchResultPayment = await this.queryClient
+        .searchUtxosByPaymentPartWithAsset(
+          credentialBytes,
+          undefined,
+          unitBytes,
+        );
+      const utxoSearchResultDelegation = await this.queryClient
+        .searchUtxosByDelegationPartWithAsset(
+          credentialBytes,
+          undefined,
+          unitBytes,
+        );
+      const combinedResults = [
+        ...utxoSearchResultPayment,
+        ...utxoSearchResultDelegation,
+      ];
+
+      const uniqueUtxos = new Map<string, any>();
+
+      for (const utxo of combinedResults) {
+        const key = `${utxo.txoRef.hash}-${utxo.txoRef.index}`;
+        if (!uniqueUtxos.has(key)) {
+          uniqueUtxos.set(key, utxo);
+        }
+      }
+
+      return Array.from(uniqueUtxos.values()).map((result: any) =>
+        this._mapToUTxO(result)
+      );
     } else {
       throw new Error("Invalid address or credential type");
     }
@@ -133,7 +173,7 @@ export class U5C implements Provider {
 
     const utxoSearchResult = await this.queryClient.searchUtxosByAsset(
       undefined,
-      unitBytes
+      unitBytes,
     );
 
     if (utxoSearchResult.length === 0) {
@@ -158,17 +198,20 @@ export class U5C implements Provider {
       };
     });
 
-    const utxoSearchResult =
-      await this.queryClient.readUtxosByOutputRef(references);
+    const utxoSearchResult = await this.queryClient.readUtxosByOutputRef(
+      references,
+    );
 
     return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
   }
 
   async getDelegation(rewardAddress: RewardAddress): Promise<Delegation> {
+    // TODO: implement getDelegation
     throw new Error("Method not implemented.");
   }
 
   async getDatum(datumHash: DatumHash): Promise<Datum> {
+    // TODO: implement getDatum
     throw new Error("Method not implemented.");
   }
 
@@ -288,6 +331,7 @@ export class U5C implements Provider {
   private async _rpcPParamsToCorePParams(
     rpcPParams: spec.cardano.PParams
   ): Promise<ProtocolParameters> {
+
     return {
       minFeeA: Number(rpcPParams.minFeeCoefficient),
       minFeeB: Number(rpcPParams.minFeeConstant),
