@@ -1,4 +1,9 @@
-import { Address } from "@anastasia-labs/cardano-multiplatform-lib-nodejs";
+import {
+  Address,
+  Transaction as CoreTransaction,
+  TransactionInput,
+  TransactionOutput,
+} from "@anastasia-labs/cardano-multiplatform-lib-nodejs";
 import {
   Address as LucidAddress,
   Assets,
@@ -18,7 +23,10 @@ import {
   UTxO,
 } from "@lucid-evolution/core-types";
 import { fromHex, toHex } from "@lucid-evolution/core-utils";
-import { CML } from "@lucid-evolution/lucid";
+import {
+  utxoToTransactionInput,
+  utxoToTransactionOutput,
+} from "@lucid-evolution/lucid";
 
 import { CardanoQueryClient, CardanoSubmitClient } from "@utxorpc/sdk";
 import type * as spec from "@utxorpc/spec";
@@ -46,12 +54,50 @@ export class U5C implements Provider {
     });
   }
 
-  evaluateTx(
+  async evaluateTx(
     tx: Transaction,
     additionalUTxOs?: UTxO[],
   ): Promise<EvalRedeemer[]> {
-    // TODO: implement evaluateTx
-    throw new Error("Method not implemented.");
+    const coreTx = CoreTransaction.from_cbor_hex(tx);
+    additionalUTxOs?.forEach((utxo) => {
+      const inputCbor = utxoToTransactionInput(utxo).to_cbor_hex();
+      const outputCbor = utxoToTransactionOutput(utxo).to_canonical_cbor_hex();
+      coreTx.body().inputs().add(TransactionInput.from_cbor_hex(inputCbor));
+      coreTx.body().outputs().add(TransactionOutput.from_cbor_hex(outputCbor));
+    });
+
+    const report = await this.submitClient.evalTx(
+      fromHex(coreTx.to_cbor_hex())
+    );
+    const evalResult = report.report[0].chain.value?.redeemers!;
+    let evalRedeemers: EvalRedeemer[] = [];
+    for (let i = 0; i < evalResult.length; i++) {
+      const evalRedeemer: EvalRedeemer = {
+        ex_units: {
+          mem: Number(evalResult[i].exUnits?.memory!),
+          steps: Number(evalResult[i].exUnits?.steps!),
+        },
+        redeemer_index: evalResult[i].index,
+        redeemer_tag:
+          evalResult[i].purpose === 0
+            ? "spend"
+            : evalResult[i].purpose === 1
+              ? "mint"
+              : evalResult[i].purpose === 2
+                ? "publish"
+                : evalResult[i].purpose === 3
+                  ? "withdraw"
+                  : evalResult[i].purpose === 4
+                    ? "vote"
+                    : "propose",
+      };
+      evalRedeemers.push(evalRedeemer);
+    }
+
+    evalRedeemers.forEach((evalRedeemer) => {
+      console.log(evalRedeemer);
+    });
+    return evalRedeemers;
   }
 
   // TODO: expose in UTxORPC node sdk, currently hardcoded
