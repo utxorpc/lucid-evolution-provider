@@ -390,24 +390,24 @@ export class U5C implements Provider {
       priceMem: Number(
         rpcPParams.prices?.memory?.numerator! /
           rpcPParams.prices?.memory?.denominator!
-      ),
+      ) || 0.0577 ,
       priceStep: Number(
         rpcPParams.prices?.steps?.numerator! /
           rpcPParams.prices?.steps?.denominator!
-      ),
+      ) || 0.0000721,
       maxTxExMem: BigInt(
         rpcPParams.maxExecutionUnitsPerTransaction?.memory ?? 14000000
       ),
       maxTxExSteps: BigInt(
         rpcPParams.maxExecutionUnitsPerTransaction?.steps ?? 10000000000
       ),
-      coinsPerUtxoByte: BigInt(rpcPParams.coinsPerUtxoByte), //TODO: get correct value from rpc when implemented
+      coinsPerUtxoByte: BigInt(4310) , //TODO: get correct value from rpc when implemented
       collateralPercentage: Number(rpcPParams.collateralPercentage ?? 150),
       maxCollateralInputs: Number(rpcPParams.maxCollateralInputs ?? 3),
       minFeeRefScriptCostPerByte: Number(
         rpcPParams.minFeeScriptRefCostPerByte?.numerator! /
           rpcPParams.minFeeScriptRefCostPerByte?.denominator!
-      ), //
+      ) || 15, //
       costModels: {
         PlutusV1: this._mapCostModel(rpcPParams.costModels?.plutusV1, 1),
         PlutusV2: this._mapCostModel(rpcPParams.costModels?.plutusV2, 2),
