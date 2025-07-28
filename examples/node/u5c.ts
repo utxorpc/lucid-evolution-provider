@@ -1,4 +1,4 @@
-import { U5C } from "../../src/u5c";
+import { U5C } from "../../lib/index.mjs";
 import { Lucid } from "@lucid-evolution/lucid";
 
 async function main() {
