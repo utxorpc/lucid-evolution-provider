@@ -115,7 +115,7 @@ export class U5C implements Provider {
       const address = Address.from_bech32(addressOrCredential);
       const addressBytes = address.to_raw_bytes();
       const utxoSearchResult =
-        await this.queryClient.searchUtxosByAddress(addressBytes);
+        await this.queryClient.searchUtxosByAddress(new Uint8Array(addressBytes));
       return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
     } else if (
       addressOrCredential &&
@@ -127,9 +127,9 @@ export class U5C implements Provider {
       credentialBytes = fromHex(addressOrCredential.hash);
 
       const utxoSearchResultPayment =
-        await this.queryClient.searchUtxosByPaymentPart(credentialBytes);
+        await this.queryClient.searchUtxosByPaymentPart(new Uint8Array(credentialBytes));
       const utxoSearchResultDelegation =
-        await this.queryClient.searchUtxosByDelegationPart(credentialBytes);
+        await this.queryClient.searchUtxosByDelegationPart(new Uint8Array(credentialBytes));
       const combinedResults = [
         ...utxoSearchResultPayment,
         ...utxoSearchResultDelegation,
@@ -163,9 +163,9 @@ export class U5C implements Provider {
       const addressBytes = address.to_raw_bytes();
       const utxoSearchResult =
         await this.queryClient.searchUtxosByAddressWithAsset(
-          addressBytes,
+          new Uint8Array(addressBytes),
           undefined,
-          unitBytes
+          new Uint8Array(unitBytes)
         );
       return utxoSearchResult.map((result: any) => this._mapToUTxO(result));
     } else if (
@@ -179,15 +179,15 @@ export class U5C implements Provider {
 
       const utxoSearchResultPayment =
         await this.queryClient.searchUtxosByPaymentPartWithAsset(
-          credentialBytes,
+          new Uint8Array(credentialBytes),
           undefined,
-          unitBytes
+          new Uint8Array(unitBytes)
         );
       const utxoSearchResultDelegation =
         await this.queryClient.searchUtxosByDelegationPartWithAsset(
-          credentialBytes,
+          new Uint8Array(credentialBytes),
           undefined,
-          unitBytes
+          new Uint8Array(unitBytes)
         );
       const combinedResults = [
         ...utxoSearchResultPayment,
@@ -216,7 +216,7 @@ export class U5C implements Provider {
 
     const utxoSearchResult = await this.queryClient.searchUtxosByAsset(
       undefined,
-      unitBytes
+      new Uint8Array(unitBytes)
     );
 
     if (utxoSearchResult.length === 0) {
@@ -236,7 +236,7 @@ export class U5C implements Provider {
     const references = outRefs.map((outRef) => {
       const txHashBytes = fromHex(outRef.txHash.toString());
       return {
-        txHash: txHashBytes,
+        txHash: new Uint8Array(txHashBytes),
         outputIndex: Number(outRef.outputIndex.toString()),
       };
     });
