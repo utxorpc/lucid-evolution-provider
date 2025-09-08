@@ -1,12 +1,14 @@
 {
     "scripts": {
-        "start": "tsx u5c.ts"
+        "start": "tsx u5c.ts",
+        "mint": "tsx mint-and-send.ts",
+        "plutus-mint": "tsx plutus-mint.ts"
     },
     "type": "module",
     "dependencies": {
-        "@lucid-evolution/lucid": "^0.4.3"
+        "@lucid-evolution/lucid": "0.4.29"
     },
     "devDependencies": {
-        "tsx": "4.19.1"
+        "tsx": "4.20.5"
     }
 }
